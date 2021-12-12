@@ -1,5 +1,9 @@
+#!/bin/bash
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 function install_soft() {
@@ -19,9 +23,9 @@ function setup_vpn() {
 
   if [ $? -eq 0 ] 
   then 
-    echo -e $GREEN "VPN is configured!" $NC
+    echo -e $GREEN$BOLD"VPN is configured!"$NC
   else 
-    echo -e $RED "VPN is NOT configured!" $NC "Please try again"
+    echo -e $RED$BOLD"VPN is NOT configured!"$NC "Please try again"
     exit 1
   fi
 }
@@ -38,9 +42,9 @@ function install_docker() {
 
   if [ $? -eq 0 ] 
   then 
-    echo -e $GREEN "Docker is configured!" $NC
+    echo -e $GREEN$BOLD"Docker is configured!"$NC
   else 
-    echo -e $RED "Docker is NOT configured!" $NC "Please try again"
+    echo -e $RED$BOLD"Docker is NOT configured!"$NC "Please try again"
     exit 1
   fi
 
@@ -50,9 +54,9 @@ function install_docker() {
 
   if [ $? -eq 0 ] 
   then 
-    echo -e $GREEN "docker-composer is configured!" $NC
+    echo -e $GREEN$BOLD"docker-composer is configured!"$NC
   else 
-    echo -e $RED "docker-composer is NOT configured!" $NC "Please try again"
+    echo -e $RED$BOLD"docker-composer is NOT configured!"$NC "Please try again"
     exit 1
   fi
 }
@@ -63,14 +67,39 @@ function install_node() {
   PRIVATE_CONFIG=ignore docker-compose up -d
   if [ $? -eq 0 ] 
   then 
-    echo -e $GREEN "Success!" $NC "Your Masa node is installed correctly and working"
+    echo -e $GREEN$BOLD"Success!"$NC "Your Masa node is installed correctly and working"
   else 
-    echo -e $RED "Error!" $NC "Something went wrong during Masa node installation. Please try again"
+    echo -e $RED$BOLD"Error!"$NC "Something went wrong during Masa node installation. Please try again"
     exit 1
   fi
 }
 
-install_soft
-setup_vpn
-install_docker
-install_node
+echo
+echo -e ${BOLD}'Official Telegram: '$BLUE'https://t.me/masafinance'$NC
+echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceUnofficialRu'$NC
+echo
+
+PS3='Please select action: '
+options=("Install Masa node" "Setup VPN" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Install Masa node")
+            echo "You chose $opt..."
+            install_soft
+            install_docker
+            install_node
+            break
+            ;;
+        "Setup VPN")
+            echo "You chose $opt..."
+            install_soft
+            setup_vpn
+            break
+            ;;
+        "Quit")
+            break
+            ;;
+        *) echo "invalid option $REPLY";;
+    esac
+done
