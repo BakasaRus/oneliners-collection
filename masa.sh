@@ -76,7 +76,7 @@ function install_node() {
 
 echo
 echo -e ${BOLD}'Official Telegram: '$BLUE'https://t.me/masafinance'$NC
-echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceUnofficialRu'$NC
+echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceRus'$NC
 echo
 
 PS3='Please select action: '
