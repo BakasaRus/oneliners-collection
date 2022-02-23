@@ -2,32 +2,13 @@
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+ORANGE='\033[0;32m'
 BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 function install_soft() {
   apt-get -y update && apt-get -y upgrade && apt-get -y install net-tools git jq nano htop curl make gcc zip unzip gpg build-essential ncdu
-}
-
-function setup_vpn() {
-  DISTRO=$(lsb_release -cs)
-
-  apt install -y apt-transport-https
-  curl -fsSL https://swupdate.openvpn.net/repos/openvpn-repo-pkg-key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/openvpn-repo-pkg-keyring.gpg
-  curl -fsSL https://swupdate.openvpn.net/community/openvpn3/repos/openvpn3-$DISTRO.list >/etc/apt/sources.list.d/openvpn3.list
-  apt update && apt -y install openvpn3
-
-  OVPN_CONFIG=~/masa-testnet-dev-client-community.ovpn
-  openvpn3 session-start --config $OVPN_CONFIG
-
-  if [ $? -eq 0 ] 
-  then 
-    echo -e $GREEN$BOLD"VPN is configured!"$NC
-  else 
-    echo -e $RED$BOLD"VPN is NOT configured!"$NC "Please try again"
-    exit 1
-  fi
 }
 
 function install_docker() {
@@ -38,7 +19,7 @@ function install_docker() {
 
   apt-get update
   apt-get -y install docker-ce docker-ce-cli containerd.io
-  docker run hello-world
+  docker run hello-world >/dev/null 2>&1
 
   if [ $? -eq 0 ] 
   then 
@@ -63,13 +44,41 @@ function install_docker() {
 
 function install_node() {
   git clone https://github.com/masa-finance/masa-node-v1.0
+  echo "[Unit]
+Description=Masa Node
+
+[Service]
+User=root
+ExecStart=(/root/masa.sh <<< 2)
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/masad.service 
+  echo -e $GREEN$BOLD"Success!"$NC "Your Masa node is installed and ready to work"
+}
+
+function suggest_reboot() {
+  while true; do
+    read -p "$(echo -e "It's" $BOLD"highly"$NC "recommended to reboot your server after Masa installation. Reboot? [Y/n]" )" yn
+    case $yn in
+        [Yy]* ) reboot; break;;
+        '' ) reboot; break;;
+        [Nn]* ) break;;
+        * ) echo "Type Y or N";;
+    esac
+  done
+}
+
+function run_node() {
   cd masa-node-v1.0
   PRIVATE_CONFIG=ignore docker-compose up -d
   if [ $? -eq 0 ] 
   then 
-    echo -e $GREEN$BOLD"Success!"$NC "Your Masa node is installed correctly and working"
+    echo -e $GREEN$BOLD"Success!"$NC "Your Masa node is working"
   else 
-    echo -e $RED$BOLD"Error!"$NC "Something went wrong during Masa node installation. Please try again"
+    echo -e $RED$BOLD"Error!"$NC "Something went wrong during Masa node start. Please try again"
     exit 1
   fi
 }
@@ -80,7 +89,7 @@ echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceRus'$NC
 echo
 
 PS3='Please select action: '
-options=("Install Masa node" "Setup VPN" "Quit")
+options=("Install Masa node" "Run Masa node" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -89,12 +98,12 @@ do
             install_soft
             install_docker
             install_node
+            suggest_reboot
             break
             ;;
-        "Setup VPN")
+        "Run Masa node")
             echo "You chose $opt..."
-            install_soft
-            setup_vpn
+            run_node
             break
             ;;
         "Quit")
