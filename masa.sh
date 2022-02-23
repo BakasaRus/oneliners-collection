@@ -13,9 +13,9 @@ function install_soft() {
 
 function install_docker() {
   apt-get -y install ca-certificates curl gnupg lsb-release
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
   apt-get update
   apt-get -y install docker-ce docker-ce-cli containerd.io
@@ -59,18 +59,6 @@ WantedBy=multi-user.target" > /etc/systemd/system/masad.service
   echo -e $GREEN$BOLD"Success!"$NC "Your Masa node is installed and ready to work"
 }
 
-function suggest_reboot() {
-  while true; do
-    read -p "$(echo -e "It's" $BOLD"highly"$NC "recommended to reboot your server after Masa installation. Reboot? [Y/n]" )" yn
-    case $yn in
-        [Yy]* ) reboot; break;;
-        '' ) reboot; break;;
-        [Nn]* ) break;;
-        * ) echo "Type Y or N";;
-    esac
-  done
-}
-
 function run_node() {
   cd masa-node-v1.0
   PRIVATE_CONFIG=ignore docker-compose up -d
@@ -89,7 +77,7 @@ echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceRus'$NC
 echo
 
 PS3='Please select action: '
-options=("Install Masa node" "Run Masa node" "Quit")
+options=("Install Masa node" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -98,11 +86,6 @@ do
             install_soft
             install_docker
             install_node
-            suggest_reboot
-            break
-            ;;
-        "Run Masa node")
-            echo "You chose $opt..."
             run_node
             break
             ;;
