@@ -7,6 +7,17 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+function define_variables() {
+  MASA_NETWORK_ID=190260
+
+  echo
+  read -r -p "Enter your identity: " MASA_IDENTITY
+  echo
+
+  echo "export MASA_IDENTITY=${MASA_IDENTITY}" >> ~/.profile
+  source ~/.profile
+}
+
 function install_soft() {
   apt-get -y update && apt-get -y upgrade && apt-get -y install net-tools git jq nano htop curl make gcc zip unzip gpg build-essential ncdu
 }
@@ -30,10 +41,6 @@ function install_node_sources() {
   source ~/.profile
   cd ../node
   geth --datadir data init ../network/testnet/genesis.json
-  
-  echo
-  read -r -p "Enter your identity: " IDENTITY
-  echo
 
   echo "[Unit]
 Description=Masa Service
@@ -46,16 +53,16 @@ Group=root
 Environment=PRIVATE_CONFIG=ignore
 WorkingDirectory=/root/masa-node-v1.0/node
 ExecStart=/root/masa-node-v1.0/src/build/bin/geth \
---identity ${IDENTITY} \
+--identity ${MASA_IDENTITY} \
 --datadir /root/masa-node-v1.0/node/data \
 --bootnodes enode://91a3c3d5e76b0acf05d9abddee959f1bcbc7c91537d2629288a9edd7a3df90acaa46ffba0e0e5d49a20598e0960ac458d76eb8fa92a1d64938c0a3a3d60f8be4@54.158.188.182:21000,enode://571be7fe060b183037db29f8fe08e4fed6e87fbb6e7bc24bc34e562adf09e29e06067be14e8b8f0f2581966f3424325e5093daae2f6afde0b5d334c2cd104c79@142.132.135.228:21000,enode://269ecefca0b4cd09bf959c2029b2c2caf76b34289eb6717d735ce4ca49fbafa91de8182dd701171739a8eaa5d043dcae16aee212fe5fadf9ed8fa6a24a56951c@65.108.72.177:21000 \
 --emitcheckpoints \
---istanbul.blockperiod 1 \
+--istanbul.blockperiod 10 \
 --mine \
 --miner.threads 1 \
 --syncmode full \
---verbosity 4 \
---networkid 190250 \
+--verbosity 5 \
+--networkid ${MASA_NETWORK_ID} \
 --rpc \
 --rpccorsdomain "*" \
 --rpcvhosts "*" \
@@ -90,6 +97,8 @@ echo -e ${BOLD}'Official Telegram: '$BLUE'https://t.me/masafinance'$NC
 echo -e ${BOLD}'      RU Telegram: '$BLUE'https://t.me/MasaFinanceRus'$NC
 echo
 
+sleep 5
+
 PS3='Please select action: '
 options=("Install" "Quit")
 select opt in "${options[@]}"
@@ -97,6 +106,7 @@ do
     case $opt in
         "Install")
             echo "You chose $opt..."
+            define_variables
             install_soft
             install_go
             install_node_sources
